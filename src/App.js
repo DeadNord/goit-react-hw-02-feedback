@@ -1,30 +1,61 @@
-import Profile from './components/profile/Profile';
-import user from './components/user.json';
+import React from 'react';
+import Controls from './components/feedback/controls/Controls';
+import Section from './components/feedback/section/Section';
+import Statistics from './components/feedback/statistics/Statistics';
+import Notification from './components/feedback/notification/Notification';
 
-import Statistics from './components/statistics/Statistics';
-import data from './components/data.json';
+class Feedback extends React.Component {
+  state = {
+    good: 0,
+    neutral: 0,
+    bad: 0,
+  };
 
-import FriendList from './components/friend-list/FriendList';
-import friends from './components/friends.json';
+  hiddeStats = true;
 
-import TransactionHistory from './components/transaction-history/TransactionHistory';
-import transactions from './components/transactions.json';
+  feedbackIncrement = id => {
+    this.setState(prevState => ({
+      [id]: prevState[id] + 1,
+    }));
+    this.hiddeStats = false;
+  };
 
-export default function App() {
-  return (
-    <div>
-      <Profile
-        url={user.avatar}
-        userName={user.username}
-        userTag={user.tag}
-        locate={user.location}
-        followers={user.stats.followers}
-        views={user.stats.views}
-        likes={user.stats.likes}
-      />
-      <Statistics title="Upload stats" stats={data} />
-      <FriendList friends={friends} />
-      <TransactionHistory transactions={transactions} />
-    </div>
-  );
+  countTotalFeedback = () => {
+    const total = this.state.good + this.state.neutral + this.state.bad;
+    return total;
+  };
+
+  countPositivePercentage = total => {
+    const positiveFeedback = Math.round((this.state.good / total) * 100);
+    return positiveFeedback;
+  };
+
+  render() {
+    const totalValue = this.countTotalFeedback();
+    const positivePercentage = this.countPositivePercentage(totalValue);
+    return (
+      <>
+        <Section title="Please leave feedback">
+          <Controls
+            options={['good', 'neutral', 'bad']}
+            onFeedback={this.feedbackIncrement}
+          />
+        </Section>
+        <Section title="Statistics">
+          {this.hiddeStats ? (
+            <Notification message="There is no feedback" />
+          ) : (
+            <Statistics
+              good={this.state.good}
+              neutral={this.state.neutral}
+              bad={this.state.bad}
+              total={totalValue}
+              positivePercentage={positivePercentage}
+            />
+          )}
+        </Section>
+      </>
+    );
+  }
 }
+export default Feedback;
